@@ -3,20 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <title>Calculadora de ITR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005ea2;
+    }
+    #resultado {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
   <h1>Calculadora de ITR</h1>
 
-  <label>Área Total do Imóvel (ha): <input type="number" id="areaTotal" /></label><br><br>
+  <label>Município:</label>
+  <select id="municipio">
+    <option value="">Selecione</option>
+    <option value="Altinópolis">Altinópolis</option>
+    <option value="Ribeirão Preto">Ribeirão Preto</option>
+    <option value="Batatais">Batatais</option>
+    <!-- Adicione mais municípios aqui -->
+  </select>
 
-  <label>Área de Lavoura Boa (ha): <input type="number" id="lavouraBoa" /></label><br>
-  <label>Área de Lavoura Regular (ha): <input type="number" id="lavouraRegular" /></label><br>
-  <label>Área de Lavoura Restrita (ha): <input type="number" id="lavouraRestrita" /></label><br>
-  <label>Área de Pastagem (ha): <input type="number" id="pastagem" /></label><br>
-  <label>Área de Silvicultura (ha): <input type="number" id="silvicultura" /></label><br>
-  <label>Área de Preservação Permanente/Reserva Legal (ha): <input type="number" id="preservacao" /></label><br><br>
+  <label>Área Total do Imóvel (ha):</label>
+  <input type="number" id="areaTotal" />
 
-  <label>Valor da Terra Nua (R$/ha): <input type="number" id="valorTn" /></label><br><br>
+  <label>Área de Lavoura Boa (ha):</label>
+  <input type="number" id="lavouraBoa" />
+
+  <label>Área de Lavoura Regular (ha):</label>
+  <input type="number" id="lavouraRegular" />
+
+  <label>Área de Lavoura Restrita (ha):</label>
+  <input type="number" id="lavouraRestrita" />
+
+  <label>Área de Pastagem (ha):</label>
+  <input type="number" id="pastagem" />
+
+  <label>Área de Silvicultura (ha):</label>
+  <input type="number" id="silvicultura" />
+
+  <label>Área de Preservação Permanente/Reserva Legal (ha):</label>
+  <input type="number" id="preservacao" />
+
+  <label>Valor da Terra Nua (R$/ha):</label>
+  <input type="number" id="valorTn" />
 
   <button onclick="calcularITR()">Calcular ITR</button>
 
