@@ -1,8 +1,8 @@
-// Apenas 2025 será considerado
-const ANO_FIXO = '2025'
-let vtn2025 = {}
+// Ano sempre 2025
+const ANO_FIXO = '2025';
+let vtn2025 = {};
 
-// Carrega JSON local e filtra ANO = 2025
+// 1. Carrega JSON e filtra apenas registros de 2025
 fetch('VTN.json')
   .then(res => res.json())
   .then(data => {
@@ -16,101 +16,112 @@ fetch('VTN.json')
           pastagem:   item['Pastagem Plantada'],
           silvicultura: item['Silvicultura'],
           preservacao:  item['Preservação']
-        }
-      })
+        };
+      });
   })
-  .then(() => populaMunicipios())
+  .then(populaMunicipios);
 
-// DOM
-const selMunicipio = document.getElementById('municipio')
-const vtnInfo      = document.getElementById('vtnInfo')
-const spanMun      = document.getElementById('vtnMunicipio')
-const spanBoa      = document.getElementById('vtnBoa')
-const spanRegular  = document.getElementById('vtnRegular')
-const spanRestrita = document.getElementById('vtnRestrita')
-const spanPast     = document.getElementById('vtnPastagem')
-const spanSilv     = document.getElementById('vtnSilvicultura')
-const spanPres     = document.getElementById('vtnPreservacao')
-const inpValorTn   = document.getElementById('valorTn')
-const btnCalcular  = document.getElementById('calcularBtn')
-const resultado    = document.getElementById('resultado')
+// 2. Referências ao DOM
+const selMunicipio   = document.getElementById('municipio');
+const vtnInfo        = document.getElementById('vtnInfo');
+const spanMun        = document.getElementById('vtnMunicipio');
+const spanBoa        = document.getElementById('vtnBoa');
+const spanRegular    = document.getElementById('vtnRegular');
+const spanRestrita   = document.getElementById('vtnRestrita');
+const spanPastagem   = document.getElementById('vtnPastagem');
+const spanSilvic     = document.getElementById('vtnSilvicultura');
+const spanPreserva   = document.getElementById('vtnPreservacao');
+const inpValorTn     = document.getElementById('valorTn');
+const inpTotal       = document.getElementById('areaTotal');
+const inpApp         = document.getElementById('areaApp');
+const inpBenfe       = document.getElementById('areaBenfeitorias');
+const inpUtilizada   = document.getElementById('areaUtilizada');
+const btnCalcular    = document.getElementById('calcularBtn');
+const resultado      = document.getElementById('resultado');
 
-// Popula lista de municípios
+// 3. Preenche lista de municípios dinamicamente
 function populaMunicipios() {
-  selMunicipio.innerHTML = '<option value="">Selecione o município</option>'
+  selMunicipio.innerHTML = '<option value="">Selecione o município</option>';
   Object.keys(vtn2025)
     .sort()
-    .forEach(mun => {
-      const opt = document.createElement('option')
-      opt.value = mun
-      opt.textContent = mun
-      selMunicipio.appendChild(opt)
-    })
+    .forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      selMunicipio.appendChild(opt);
+    });
 }
 
-// Ao mudar município, exibe TODOS os valores de VTN
+// 4. Ao trocar município, exibe todos os valores de VTN
 selMunicipio.addEventListener('change', () => {
-  const mun = selMunicipio.value
-  const dados = vtn2025[mun]
+  const mun   = selMunicipio.value;
+  const dados = vtn2025[mun];
   if (!dados) {
-    vtnInfo.style.display = 'none'
-    inpValorTn.value = ''
-    return
+    vtnInfo.style.display = 'none';
+    inpValorTn.value = '';
+    return;
   }
-  spanMun.textContent      = mun
-  spanBoa.textContent      = dados.boa.toFixed(2)
-  spanRegular.textContent  = dados.regular.toFixed(2)
-  spanRestrita.textContent = dados.restrita.toFixed(2)
-  spanPast.textContent     = dados.pastagem.toFixed(2)
-  spanSilv.textContent     = dados.silvicultura.toFixed(2)
-  spanPres.textContent     = dados.preservacao.toFixed(2)
+  spanMun.textContent      = mun;
+  spanBoa.textContent      = dados.boa.toFixed(2);
+  spanRegular.textContent  = dados.regular.toFixed(2);
+  spanRestrita.textContent = dados.restrita.toFixed(2);
+  spanPastagem.textContent = dados.pastagem.toFixed(2);
+  spanSilvic.textContent   = dados.silvicultura.toFixed(2);
+  spanPreserva.textContent = dados.preservacao.toFixed(2);
 
-  // usa aptidão boa como padrão para o cálculo
-  inpValorTn.value = dados.boa
-  vtnInfo.style.display = 'block'
-})
+  // valor padrão: Lavoura Aptidão Boa
+  inpValorTn.value = dados.boa;
+  vtnInfo.style.display = 'block';
+});
 
-// Ao clicar, calcula o ITR
+// 5. Cálculo completo de ITR
 btnCalcular.addEventListener('click', () => {
-  const mun      = selMunicipio.value
-  const areaTot  = parseFloat(document.getElementById('areaTotal').value) || 0
-  const valorTn  = parseFloat(inpValorTn.value) || 0
+  const mun         = selMunicipio.value;
+  const total       = parseFloat(inpTotal.value)     || 0;
+  const app         = parseFloat(inpApp.value)       || 0;
+  const benfe       = parseFloat(inpBenfe.value)     || 0;
+  const utilizada   = parseFloat(inpUtilizada.value) || 0;
+  const valorTn     = parseFloat(inpValorTn.value)   || 0;
 
-  // soma de todas as áreas informadas
-  const areaUtil = ['lavouraBoa','lavouraRegular','lavouraRestrita',
-                    'pastagem','silvicultura','preservacao']
-    .reduce((sum, id) => sum + (parseFloat(document.getElementById(id).value)||0), 0)
-
-  // validações
+  // Validações
   if (!mun) {
-    resultado.textContent = 'Selecione um município.'
-    return
+    resultado.textContent = 'Selecione um município.';
+    return;
   }
-  if (areaTot <= 0) {
-    resultado.textContent = 'Informe a área total do imóvel.'
-    return
+  if (total <= 0) {
+    resultado.textContent = 'Informe a área total do imóvel.';
+    return;
   }
-  if (valorTn <= 0) {
-    resultado.textContent = 'Valor da Terra Nua inválido.'
-    return
+  // 1️⃣ Área Tributável
+  const areaTrib = total - (app + benfe);
+  if (areaTrib <= 0) {
+    resultado.textContent = 'Área tributável inválida.';
+    return;
   }
 
-  const grauUso = (areaUtil / areaTot) * 100
-  let aliquota
-  if (grauUso <= 30)      aliquota = 0.05
-  else if (grauUso <= 50) aliquota = 0.04
-  else if (grauUso <= 70) aliquota = 0.035
-  else if (grauUso <= 90) aliquota = 0.03
-  else                    aliquota = 0.025
+  // 2️⃣ VTN Total
+  const vtnTotal = areaTrib * valorTn;
 
-  const valorVenal = areaTot * valorTn
-  const itr        = valorVenal * aliquota
+  // 3️⃣ Grau de Utilização
+  const gu = (utilizada / areaTrib) * 100;
 
+  // 4️⃣ Alíquota (imóvel >50 ha)
+  let aliquota;
+  if (gu <= 30)        aliquota = 0.0330;
+  else if (gu <= 50)   aliquota = 0.0270;
+  else if (gu <= 65)   aliquota = 0.0210;
+  else if (gu <= 80)   aliquota = 0.0150;
+  else                 aliquota = 0.0100;
+
+  // 5️⃣ ITR devido
+  const itr = vtnTotal * aliquota;
+
+  // Exibe os resultados
   resultado.innerHTML = `
-    <p><strong>Município:</strong> ${mun}</p>
-    <p><strong>Grau de Utilização:</strong> ${grauUso.toFixed(2)}%</p>
+    <p><strong>Área Tributável:</strong> ${areaTrib.toFixed(2)} ha</p>
+    <p><strong>VTN Total:</strong> R$ ${vtnTotal.toFixed(2)}</p>
+    <p><strong>Grau de Utilização (GU):</strong> ${gu.toFixed(2)}%</p>
     <p><strong>Alíquota aplicada:</strong> ${(aliquota*100).toFixed(2)}%</p>
-    <p><strong>Valor Venal:</strong> R$ ${valorVenal.toFixed(2)}</p>
-    <p><strong>ITR Estimado:</strong> R$ ${itr.toFixed(2)}</p>
-  `
-})
+    <p><strong>ITR Devido:</strong> R$ ${itr.toFixed(2)}</p>
+  `;
+});
