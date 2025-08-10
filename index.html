@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal ITR</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de VTN - Portal ITR</h1>
+
+    <label for="municipio">Município:</label>
+    <select id="municipio"></select>
+
+    <div class="inputs">
+      <label>Lavoura Aptidão Boa (ha): <input type="number" id="boa" /></label>
+      <label>Lavoura Aptidão Regular (ha): <input type="number" id="regular" /></label>
+      <label>Lavoura Aptidão Restrita (ha): <input type="number" id="restrita" /></label>
+      <label>Pastagem Plantada (ha): <input type="number" id="pastagem" /></label>
+      <label>Silvicultura (ha): <input type="number" id="silvicultura" /></label>
+      <label>Preservação (ha): <input type="number" id="preservacao" /></label>
+    </div>
+
+    <button onclick="calcularVTN()">Calcular VTN Total</button>
+
+    <div id="resultado"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
