@@ -1,50 +1,46 @@
-let dadosVTN = [];
-
-fetch('VTN.json')
-  .then(response => response.json())
-  .then(data => {
-    dadosVTN = data;
-    preencherMunicipios(data);
-  });
-
-function preencherMunicipios(data) {
-  const select = document.getElementById('municipio');
-  const municipiosUnicos = [...new Set(data.map(item => item.Município))];
-  municipiosUnicos.sort().forEach(mun => {
-    const option = document.createElement('option');
-    option.value = mun;
-    option.textContent = mun;
-    select.appendChild(option);
-  });
-}
-
-function calcularVTN() {
-  const municipioSelecionado = document.getElementById('municipio').value;
-  const registro = dadosVTN.find(item => item.Município === municipioSelecionado);
-
-  if (!registro) {
-    document.getElementById('resultado').textContent = 'Município não encontrado.';
-    return;
-  }
-
+function calcularITR() {
+  const areaTotal = parseFloat(document.getElementById('areaTotal').value) || 0;
   const areas = {
-    boa: parseFloat(document.getElementById('boa').value) || 0,
-    regular: parseFloat(document.getElementById('regular').value) || 0,
-    restrita: parseFloat(document.getElementById('restrita').value) || 0,
+    boa: parseFloat(document.getElementById('lavouraBoa').value) || 0,
+    regular: parseFloat(document.getElementById('lavouraRegular').value) || 0,
+    restrita: parseFloat(document.getElementById('lavouraRestrita').value) || 0,
     pastagem: parseFloat(document.getElementById('pastagem').value) || 0,
     silvicultura: parseFloat(document.getElementById('silvicultura').value) || 0,
     preservacao: parseFloat(document.getElementById('preservacao').value) || 0
   };
 
-  const total =
-    areas.boa * registro["Lavoura Aptidão Boa"] +
-    areas.regular * registro["Lavoura Aptidão Regular"] +
-    areas.restrita * registro["Lavoura Aptidão Restrita"] +
-    areas.pastagem * registro["Pastagem Plantada"] +
-    areas.silvicultura * registro["Silvicultura"] +
-    areas.preservacao * registro["Preservação"];
+  const valorTn = parseFloat(document.getElementById('valorTn').value) || 0;
 
-  document.getElementById('resultado').textContent =
-    `VTN Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+  const areaUtilizada = areas.boa + areas.regular + areas.restrita + areas.pastagem + areas.silvicultura + areas.preservacao;
 
+  if (areaTotal === 0) {
+    document.getElementById('resultado').innerText = "Informe a área total do imóvel.";
+    return;
+  }
+
+  const grauUso = (areaUtilizada / areaTotal) * 100;
+
+  // Tabela de alíquotas (exemplo simplificado)
+  let aliquota;
+  if (grauUso <= 30) {
+    aliquota = 0.05;
+  } else if (grauUso <= 50) {
+    aliquota = 0.04;
+  } else if (grauUso <= 70) {
+    aliquota = 0.035;
+  } else if (grauUso <= 90) {
+    aliquota = 0.03;
+  } else {
+    aliquota = 0.025;
+  }
+
+  const valorVenal = areaTotal * valorTn;
+  const itr = valorVenal * aliquota;
+
+  document.getElementById('resultado').innerHTML = `
+    <p>Grau de Utilização: ${grauUso.toFixed(2)}%</p>
+    <p>Alíquota Aplicada: ${(aliquota * 100).toFixed(2)}%</p>
+    <p>Valor Venal: R$ ${valorVenal.toFixed(2)}</p>
+    <p>ITR Estimado: R$ ${itr.toFixed(2)}</p>
+  `;
 }
