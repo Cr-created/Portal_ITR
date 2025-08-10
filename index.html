@@ -2,30 +2,26 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portal ITR</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Calculadora de ITR</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Calculadora de VTN - Portal ITR</h1>
+  <h1>Calculadora de ITR</h1>
 
-    <label for="municipio">Município:</label>
-    <select id="municipio"></select>
+  <label>Área Total do Imóvel (ha): <input type="number" id="areaTotal" /></label><br><br>
 
-    <div class="inputs">
-      <label>Lavoura Aptidão Boa (ha): <input type="number" id="boa" /></label>
-      <label>Lavoura Aptidão Regular (ha): <input type="number" id="regular" /></label>
-      <label>Lavoura Aptidão Restrita (ha): <input type="number" id="restrita" /></label>
-      <label>Pastagem Plantada (ha): <input type="number" id="pastagem" /></label>
-      <label>Silvicultura (ha): <input type="number" id="silvicultura" /></label>
-      <label>Preservação (ha): <input type="number" id="preservacao" /></label>
-    </div>
+  <label>Área de Lavoura Boa (ha): <input type="number" id="lavouraBoa" /></label><br>
+  <label>Área de Lavoura Regular (ha): <input type="number" id="lavouraRegular" /></label><br>
+  <label>Área de Lavoura Restrita (ha): <input type="number" id="lavouraRestrita" /></label><br>
+  <label>Área de Pastagem (ha): <input type="number" id="pastagem" /></label><br>
+  <label>Área de Silvicultura (ha): <input type="number" id="silvicultura" /></label><br>
+  <label>Área de Preservação Permanente/Reserva Legal (ha): <input type="number" id="preservacao" /></label><br><br>
 
-    <button onclick="calcularVTN()">Calcular VTN Total</button>
+  <label>Valor da Terra Nua (R$/ha): <input type="number" id="valorTn" /></label><br><br>
 
-    <div id="resultado"></div>
-  </div>
+  <button onclick="calcularITR()">Calcular ITR</button>
+
+  <h2>Resultado:</h2>
+  <div id="resultado"></div>
 
   <script src="script.js"></script>
 </body>
