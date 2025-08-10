@@ -3,144 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <title>Calculadora de ITR</title>
-  <style>
-    /* fundo em degradê pastel */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #FFEFBA 0%, #FFFFFF 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    /* container semi-transparente */
-    .container {
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 12px;
-      padding: 40px;
-      max-width: 720px;
-      width: 90%;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 24px;
-      color: #555;
-    }
-    label {
-      display: block;
-      margin: 16px 0 6px;
-      font-weight: 600;
-      color: #444;
-      font-size: 14px;
-    }
-    select, input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #DDD;
-      border-radius: 8px;
-      background: #FAFAFA;
-      font-size: 14px;
-      box-sizing: border-box;
-      transition: border-color .2s;
-    }
-    select:focus, input:focus {
-      border-color: #A3D5FF;
-      outline: none;
-    }
-    button {
-      width: 100%;
-      margin-top: 24px;
-      padding: 14px;
-      background: #A3E4D7;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      cursor: pointer;
-      transition: background .2s;
-    }
-    button:hover {
-      background: #76D7C4;
-    }
-    #vtnInfo, #resultado {
-      margin-top: 28px;
-      padding: 20px;
-      background: #FFF;
-      border-left: 4px solid #A3E4D7;
-      border-radius: 6px;
-    }
-    #vtnInfo ul {
-      margin: 8px 0 0;
-      padding-left: 0;
-      list-style: none;
-    }
-    #vtnInfo li {
-      font-size: 14px;
-      margin: 6px 0;
-    }
-    #resultado p {
-      margin: 8px 0;
-      font-size: 15px;
-      color: #333;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <h1>Calculadora de ITR</h1>
 
-    <!-- Filtro fixo em 2025 (não exibido) -->
-    <!-- <select id="ano" hidden> -->
-    <!--   <option value="2025" selected>2025</option> -->
-    <!-- </select> -->
-
     <label for="municipio">Município</label>
-    <select id="municipio">
-      <option value="">Carregando...</option>
-    </select>
+    <select id="municipio"><option>Carregando...</option></select>
 
-    <div id="vtnInfo" style="display: none;">
+    <!-- Ano fixo no código, oculto na interface -->
+    <!-- <select id="ano" hidden><option value="2025" selected>2025</option></select> -->
+
+    <div id="vtnInfo" style="display:none">
       <p>
-        Valores do Valor da Terra Nua em 
-        <strong><span id="vtnMunicipio"></span></strong> (2025):
+        Valores do VTN em <strong><span id="vtnMunicipio"></span></strong> (2025):
       </p>
       <ul>
-        <li>Boa: R$ <span id="vtnBoa"></span> /ha</li>
-        <li>Regular: R$ <span id="vtnRegular"></span> /ha</li>
-        <li>Restrita: R$ <span id="vtnRestrita"></span> /ha</li>
-        <li>Pastagem: R$ <span id="vtnPastagem"></span> /ha</li>
-        <li>Silvicultura: R$ <span id="vtnSilvicultura"></span> /ha</li>
-        <li>Preservação: R$ <span id="vtnPreservacao"></span> /ha</li>
+        <li>Boa: R$ <span id="vtnBoa"></span>/ha</li>
+        <li>Regular: R$ <span id="vtnRegular"></span>/ha</li>
+        <li>Restrita: R$ <span id="vtnRestrita"></span>/ha</li>
+        <li>Pastagem: R$ <span id="vtnPastagem"></span>/ha</li>
+        <li>Silvicultura: R$ <span id="vtnSilvicultura"></span>/ha</li>
+        <li>Preservação: R$ <span id="vtnPreservacao"></span>/ha</li>
       </ul>
     </div>
 
-    <label for="valorTn">Valor da Terra Nua (R$/ha) usado no cálculo</label>
+    <label for="valorTn">
+      Valor da Terra Nua (R$/ha) usado no cálculo
+    </label>
     <input type="number" id="valorTn" readonly />
 
     <label for="areaTotal">Área Total do Imóvel (ha)</label>
-    <input type="number" id="areaTotal" placeholder="Ex: 100" />
+    <input type="number" id="areaTotal" placeholder="Ex: 120" />
 
-    <label for="lavouraBoa">Área de Lavoura Aptidão Boa (ha)</label>
-    <input type="number" id="lavouraBoa" placeholder="Ex: 10" />
+    <label for="areaApp">Área de APP + Reserva Legal (ha)</label>
+    <input type="number" id="areaApp" placeholder="Ex: 35" />
 
-    <label for="lavouraRegular">Área de Lavoura Aptidão Regular (ha)</label>
-    <input type="number" id="lavouraRegular" placeholder="Ex: 8" />
+    <label for="areaBenfeitorias">Área de Benfeitorias/Construções (ha)</label>
+    <input type="number" id="areaBenfeitorias" placeholder="Ex: 5" />
 
-    <label for="lavouraRestrita">Área de Lavoura Aptidão Restrita (ha)</label>
-    <input type="number" id="lavouraRestrita" placeholder="Ex: 5" />
-
-    <label for="pastagem">Área de Pastagem Plantada (ha)</label>
-    <input type="number" id="pastagem" placeholder="Ex: 12" />
-
-    <label for="silvicultura">Área de Silvicultura (ha)</label>
-    <input type="number" id="silvicultura" placeholder="Ex: 7" />
-
-    <label for="preservacao">Área de Preservação (ha)</label>
-    <input type="number" id="preservacao" placeholder="Ex: 3" />
+    <label for="areaUtilizada">Área Utilizada  
+      (lavoura + pastagem) (ha)</label>
+    <input type="number" id="areaUtilizada" placeholder="Ex: 70" />
 
     <button id="calcularBtn">Calcular ITR</button>
 
