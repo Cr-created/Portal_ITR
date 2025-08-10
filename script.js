@@ -1,6 +1,6 @@
 let dadosVTN = [];
 
-fetch('data/VTN.json')
+fetch('VTN.json')
   .then(response => response.json())
   .then(data => {
     dadosVTN = data;
@@ -46,4 +46,5 @@ function calcularVTN() {
 
   document.getElementById('resultado').textContent =
     `VTN Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+
 }
