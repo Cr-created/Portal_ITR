@@ -22,12 +22,13 @@
       margin: 10px 0 5px;
       font-weight: bold;
     }
-    input, select {
+    select, input {
       width: 100%;
       padding: 8px;
       margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      box-sizing: border-box;
     }
     button {
       width: 100%;
@@ -42,7 +43,7 @@
     button:hover {
       background-color: #005ea2;
     }
-    #resultado {
+    #vtnInfo, #resultado {
       background-color: #fff;
       padding: 15px;
       border-radius: 4px;
@@ -60,8 +61,24 @@
     <option value="Altinópolis">Altinópolis</option>
     <option value="Ribeirão Preto">Ribeirão Preto</option>
     <option value="Batatais">Batatais</option>
-    <!-- Adicione mais municípios aqui -->
+    <!-- mais municípios podem ser adicionados -->
   </select>
+
+  <label>Ano:</label>
+  <select id="ano">
+    <option value="2025">2025</option>
+  </select>
+
+  <div id="vtnInfo" style="display: none;">
+    <p>
+      Valor da Terra Nua em <strong><span id="vtnMunicipio"></span></strong>  
+      (<span id="vtnAno"></span>):  
+      R$ <strong><span id="vtnValor"></span></strong> /ha
+    </p>
+  </div>
+
+  <label>Valor da Terra Nua (R$/ha):</label>
+  <input type="number" id="valorTn" readonly />
 
   <label>Área Total do Imóvel (ha):</label>
   <input type="number" id="areaTotal" />
@@ -83,9 +100,6 @@
 
   <label>Área de Preservação Permanente/Reserva Legal (ha):</label>
   <input type="number" id="preservacao" />
-
-  <label>Valor da Terra Nua (R$/ha):</label>
-  <input type="number" id="valorTn" />
 
   <button onclick="calcularITR()">Calcular ITR</button>
 
