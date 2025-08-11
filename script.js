@@ -23,6 +23,9 @@ fetch('VTN.json')
 // Elementos do DOM
 const selMunicipio = document.getElementById('municipio');
 const vtnInfo = document.getElementById('vtnInfo');
+const resultado = document.getElementById('resultado');
+const btnCalcular = document.getElementById('calcularBtn');
+
 const spanMun = document.getElementById('vtnMunicipio');
 const spanBoa = document.getElementById('vtnBoa');
 const spanRegular = document.getElementById('vtnRegular');
@@ -30,12 +33,11 @@ const spanRestrita = document.getElementById('vtnRestrita');
 const spanPastagem = document.getElementById('vtnPastagem');
 const spanSilvic = document.getElementById('vtnSilvicultura');
 const spanPreserva = document.getElementById('vtnPreservacao');
+
 const inpValorTn = document.getElementById('valorTn');
 const inpTotal = document.getElementById('areaTotal');
 const inpApp = document.getElementById('areaApp');
 const inpBenfe = document.getElementById('areaBenfeitorias');
-const btnCalcular = document.getElementById('calcularBtn');
-const resultado = document.getElementById('resultado');
 
 const inpAreas = {
   boa: document.getElementById('areaBoa'),
@@ -62,23 +64,28 @@ function populaMunicipios() {
 selMunicipio.addEventListener('change', () => {
   const mun = selMunicipio.value;
   const dados = vtn2025[mun];
+
   if (!dados) {
     vtnInfo.style.display = 'none';
     inpValorTn.value = '';
     return;
   }
+
+  const fmtNum = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 });
+
   spanMun.textContent = mun;
-  spanBoa.textContent = dados.boa.toFixed(2);
-  spanRegular.textContent = dados.regular.toFixed(2);
-  spanRestrita.textContent = dados.restrita.toFixed(2);
-  spanPastagem.textContent = dados.pastagem.toFixed(2);
-  spanSilvic.textContent = dados.silvicultura.toFixed(2);
-  spanPreserva.textContent = dados.preservacao.toFixed(2);
-  inpValorTn.value = dados.boa;
+  spanBoa.textContent = fmtNum.format(dados.boa);
+  spanRegular.textContent = fmtNum.format(dados.regular);
+  spanRestrita.textContent = fmtNum.format(dados.restrita);
+  spanPastagem.textContent = fmtNum.format(dados.pastagem);
+  spanSilvic.textContent = fmtNum.format(dados.silvicultura);
+  spanPreserva.textContent = fmtNum.format(dados.preservacao);
+
+  inpValorTn.value = fmtNum.format(dados.boa);
   vtnInfo.style.display = 'block';
 });
 
-// Função que calcula a alíquota com base na tabela oficial
+// Calcula a alíquota com base na tabela oficial
 function calcularAliquota(area, gu) {
   const faixas = [
     { limite: 50, valores: [0.03, 0.2, 0.4, 0.7, 1] },
@@ -89,24 +96,21 @@ function calcularAliquota(area, gu) {
     { limite: Infinity, valores: [0.45, 3, 6.4, 12, 20] }
   ];
 
-  // Determina a faixa do GU
   const guFaixa = gu <= 30 ? 4 :
                   gu <= 50 ? 3 :
                   gu <= 65 ? 2 :
                   gu <= 80 ? 1 : 0;
 
   const faixa = faixas.find(f => area <= f.limite);
-
-  // Alíquotas estão em %, converter para decimal
   return faixa.valores[guFaixa] / 100;
 }
 
 // Evento de cálculo do ITR
 btnCalcular.addEventListener('click', () => {
   const mun = selMunicipio.value;
-  const total = parseFloat(inpTotal.value) || 0;
-  const app = parseFloat(inpApp.value) || 0;
-  const benfe = parseFloat(inpBenfe.value) || 0;
+  const total = parseFloat(inpTotal.value.replace(',', '.')) || 0;
+  const app = parseFloat(inpApp.value.replace(',', '.')) || 0;
+  const benfe = parseFloat(inpBenfe.value.replace(',', '.')) || 0;
   const dados = vtn2025[mun];
 
   if (!mun) {
@@ -124,16 +128,16 @@ btnCalcular.addEventListener('click', () => {
     return;
   }
 
-  const areaUtilizada = Object.keys(inpAreas)
-    .map(k => parseFloat(inpAreas[k].value) || 0)
+  const areaUtilizada = Object.values(inpAreas)
+    .map(input => parseFloat(input.value.replace(',', '.')) || 0)
     .reduce((sum, val) => sum + val, 0);
 
   const vtnTotal =
-    (inpAreas.boa.value * dados.boa) +
-    (inpAreas.regular.value * dados.regular) +
-    (inpAreas.restrita.value * dados.restrita) +
-    (inpAreas.pastagem.value * dados.pastagem) +
-    (inpAreas.silvicultura.value * dados.silvicultura);
+    (inpAreas.boa.value.replace(',', '.') * dados.boa) +
+    (inpAreas.regular.value.replace(',', '.') * dados.regular) +
+    (inpAreas.restrita.value.replace(',', '.') * dados.restrita) +
+    (inpAreas.pastagem.value.replace(',', '.') * dados.pastagem) +
+    (inpAreas.silvicultura.value.replace(',', '.') * dados.silvicultura);
 
   const gu = (areaUtilizada / areaTrib) * 100;
   const aliquota = calcularAliquota(total, gu);
@@ -151,20 +155,3 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
-// Bloqueia clique direito
-document.addEventListener('contextmenu', event => event.preventDefault());
-
-// Bloqueia teclas comuns de inspeção
-document.onkeydown = function(e) {
-  if (
-    e.key === 'F12' || 
-    (e.ctrlKey && e.shiftKey && e.key === 'I') || 
-    (e.ctrlKey && e.key === 'U') || 
-    (e.ctrlKey && e.shiftKey && e.key === 'J')
-  ) {
-    return false;
-  }
-};
-
-
-
