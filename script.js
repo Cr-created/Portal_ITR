@@ -74,6 +74,25 @@ selMunicipio.addEventListener('change', () => {
   vtnInfo.style.display = 'block';
 });
 
+function calcularAliquota(area, gu) {
+  const faixas = [
+    { limite: 50, valores: [0.03, 0.2, 0.4, 0.7, 1] },
+    { limite: 200, valores: [0.07, 0.4, 0.8, 1.4, 2] },
+    { limite: 500, valores: [0.1, 0.6, 1.3, 2.3, 3.3] },
+    { limite: 1000, valores: [0.15, 0.85, 1.9, 3.3, 4.7] },
+    { limite: 5000, valores: [0.3, 1.6, 3.4, 6, 8.6] },
+    { limite: Infinity, valores: [0.45, 3, 6.4, 12, 20] }
+  ];
+
+  const guFaixa = gu <= 30 ? 0 :
+                  gu <= 50 ? 1 :
+                  gu <= 65 ? 2 :
+                  gu <= 80 ? 3 : 4;
+
+  const faixa = faixas.find(f => area <= f.limite);
+  return faixa.valores[guFaixa] / 100;
+}
+
 btnCalcular.addEventListener('click', () => {
   const mun = selMunicipio.value;
   const total = parseFloat(inpTotal.value) || 0;
@@ -108,14 +127,7 @@ btnCalcular.addEventListener('click', () => {
     (inpAreas.silvicultura.value * dados.silvicultura);
 
   const gu = (areaUtilizada / areaTrib) * 100;
-
-  let aliquota;
-  if (gu <= 30) aliquota = 0.0330;
-  else if (gu <= 50) aliquota = 0.0270;
-  else if (gu <= 65) aliquota = 0.0210;
-  else if (gu <= 80) aliquota = 0.0150;
-  else aliquota = 0.0100;
-
+  const aliquota = calcularAliquota(total, gu);
   const itr = vtnTotal * aliquota;
 
   const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -126,6 +138,7 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>Área Utilizada:</strong> ${fmtNum.format(areaUtilizada)} ha</p>
     <p><strong>VTN Total:</strong> ${fmtBRL.format(vtnTotal)}</p>
     <p><strong>Grau de Utilização (GU):</strong> ${fmtNum.format(gu)}%</p>
-     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
+    <p><strong>Alíquota Aplicada:</strong> ${fmtNum.format(aliquota * 100)}%</p>
+    <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
