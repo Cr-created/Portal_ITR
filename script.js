@@ -90,7 +90,7 @@ function calcularAliquota(area, gu) {
                   gu <= 80 ? 3 : 4;
 
   const faixa = faixas.find(f => area <= f.limite);
-  return faixa.valores[guFaixa] / 100;
+  return faixa.valores[guFaixa] / 10000;
 }
 
 btnCalcular.addEventListener('click', () => {
@@ -142,3 +142,4 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
+
