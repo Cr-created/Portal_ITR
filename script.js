@@ -1,56 +1,129 @@
-// script.js
+const ANO_FIXO = '2025';
+let vtn2025 = {};
 
-document.getElementById('calculateBtn').addEventListener('click', calculateVTN);
+fetch('VTN.json')
+  .then(res => res.json())
+  .then(data => {
+    data
+      .filter(item => item.ANO === ANO_FIXO)
+      .forEach(item => {
+        vtn2025[item.Município] = {
+          boa: item['Lavoura Aptidão Boa'],
+          regular: item['Lavoura Aptidão Regular'],
+          restrita: item['Lavoura Aptidão Restrita'],
+          pastagem: item['Pastagem Plantada'],
+          silvicultura: item['Silvicultura'],
+          preservacao: item['Preservação']
+        };
+      });
+  })
+  .then(populaMunicipios);
 
-function calculateVTN() {
-  // formatadores
-  const moneyFmt = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  });
-  const numberFmt = new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+const selMunicipio = document.getElementById('municipio');
+const vtnInfo = document.getElementById('vtnInfo');
+const spanMun = document.getElementById('vtnMunicipio');
+const spanBoa = document.getElementById('vtnBoa');
+const spanRegular = document.getElementById('vtnRegular');
+const spanRestrita = document.getElementById('vtnRestrita');
+const spanPastagem = document.getElementById('vtnPastagem');
+const spanSilvic = document.getElementById('vtnSilvicultura');
+const spanPreserva = document.getElementById('vtnPreservacao');
+const inpValorTn = document.getElementById('valorTn');
+const inpTotal = document.getElementById('areaTotal');
+const inpApp = document.getElementById('areaApp');
+const inpBenfe = document.getElementById('areaBenfeitorias');
+const btnCalcular = document.getElementById('calcularBtn');
+const resultado = document.getElementById('resultado');
 
-  // lê valores de VTN municipal
-  const vtn = {
-    boa:         parseFloat(document.getElementById('vtnCulturaBoa').value)        || 0,
-    regular:     parseFloat(document.getElementById('vtnCulturaRegular').value)    || 0,
-    restrita:    parseFloat(document.getElementById('vtnCulturaRestrita').value)   || 0,
-    pastagem:    parseFloat(document.getElementById('vtnPastagem').value)          || 0,
-    silvicultura:parseFloat(document.getElementById('vtnSilvicultura').value)      || 0
-  };
+const inpAreas = {
+  boa: document.getElementById('areaBoa'),
+  regular: document.getElementById('areaRegular'),
+  restrita: document.getElementById('areaRestrita'),
+  pastagem: document.getElementById('areaPastagem'),
+  silvicultura: document.getElementById('areaSilvicultura')
+};
 
-  // lê áreas por categoria
-  const area = {
-    boa:         parseFloat(document.getElementById('areaCulturaBoa').value)        || 0,
-    regular:     parseFloat(document.getElementById('areaCulturaRegular').value)    || 0,
-    restrita:    parseFloat(document.getElementById('areaCulturaRestrita').value)   || 0,
-    pastagem:    parseFloat(document.getElementById('areaPastagem').value)          || 0,
-    silvicultura:parseFloat(document.getElementById('areaSilvicultura').value)      || 0
-  };
-
-  // soma das áreas
-  const totalArea = area.boa
-                  + area.regular
-                  + area.restrita
-                  + area.pastagem
-                  + area.silvicultura;
-
-  // cálculo do VTN por categoria
-  const vtnCalc = {
-    boa:          area.boa * vtn.boa,
-    regular:      area.regular * vtn.regular,
-    restrita:     area.restrita * vtn.restrita,
-    pastagem:     area.pastagem * vtn.pastagem,
-    silvicultura: area.silvicultura * vtn.silvicultura
-  };
-
-  // VTN total
-  const totalVTN = Object.values(vtnCalc).reduce((sum, val) => sum + val, 0);
-
-  // exibe resultados formatados
-  document.getElementById('totalArea').textContent = numberFmt.format(totalArea);
-  document.getElementById('vtnTotal').textContent  = moneyFmt.format(totalVTN);
+function populaMunicipios() {
+  selMunicipio.innerHTML = '<option value="">Selecione o município</option>';
+  Object.keys(vtn2025)
+    .sort()
+    .forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      selMunicipio.appendChild(opt);
+    });
 }
+
+selMunicipio.addEventListener('change', () => {
+  const mun = selMunicipio.value;
+  const dados = vtn2025[mun];
+  if (!dados) {
+    vtnInfo.style.display = 'none';
+    inpValorTn.value = '';
+    return;
+  }
+  spanMun.textContent = mun;
+  spanBoa.textContent = dados.boa.toFixed(2);
+  spanRegular.textContent = dados.regular.toFixed(2);
+  spanRestrita.textContent = dados.restrita.toFixed(2);
+  spanPastagem.textContent = dados.pastagem.toFixed(2);
+  spanSilvic.textContent = dados.silvicultura.toFixed(2);
+  spanPreserva.textContent = dados.preservacao.toFixed(2);
+  inpValorTn.value = dados.boa;
+  vtnInfo.style.display = 'block';
+});
+
+btnCalcular.addEventListener('click', () => {
+  const mun = selMunicipio.value;
+  const total = parseFloat(inpTotal.value) || 0;
+  const app = parseFloat(inpApp.value) || 0;
+  const benfe = parseFloat(inpBenfe.value) || 0;
+  const dados = vtn2025[mun];
+
+  if (!mun) {
+    resultado.textContent = 'Selecione um município.';
+    return;
+  }
+  if (total <= 0) {
+    resultado.textContent = 'Informe a área total do imóvel.';
+    return;
+  }
+
+  const areaTrib = total - (app + benfe);
+  if (areaTrib <= 0) {
+    resultado.textContent = 'Área tributável inválida.';
+    return;
+  }
+
+  const areaUtilizada = Object.keys(inpAreas)
+    .map(k => parseFloat(inpAreas[k].value) || 0)
+    .reduce((sum, val) => sum + val, 0);
+
+  const vtnTotal =
+    (inpAreas.boa.value * dados.boa) +
+    (inpAreas.regular.value * dados.regular) +
+    (inpAreas.restrita.value * dados.restrita) +
+    (inpAreas.pastagem.value * dados.pastagem) +
+    (inpAreas.silvicultura.value * dados.silvicultura);
+
+  const gu = (areaUtilizada / areaTrib) * 100;
+
+  let aliquota;
+  if (gu <= 30) aliquota = 0.0330;
+  else if (gu <= 50) aliquota = 0.0270;
+  else if (gu <= 65) aliquota = 0.0210;
+  else if (gu <= 80) aliquota = 0.0150;
+  else aliquota = 0.0100;
+
+  const itr = vtnTotal * aliquota;
+
+  const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const fmtNum = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 });
+
+  resultado.innerHTML = `
+    <p><strong>Área Tributável:</strong> ${fmtNum.format(areaTrib)} ha</p>
+    <p><strong>Área Utilizada:</strong> ${fmtNum.format(areaUtilizada)} ha</p>
+    <p><strong>VTN Total:</strong> ${fmtBRL.format(vtnTotal)}</p>
+    <p><strong>Grau de Utilização (GU):</strong> ${fmtNum.format(gu)}%</p>
+    <p><strong>
