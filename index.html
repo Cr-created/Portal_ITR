@@ -1,70 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Calculadora de VTN</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; }
-    fieldset { margin-bottom: 1.5rem; padding: 1rem; }
-    label { display: block; margin-top: 0.5rem; }
-    input { width: 100%; padding: 0.4rem; margin-top: 0.2rem; box-sizing: border-box; }
-    .resultado { background: #f9f9f9; padding: 1rem; border: 1px solid #ddd; }
-  </style>
+  <meta charset="UTF-8" />
+  <title>Calculadora de ITR</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="container">
+    <h1>Calculadora de ITR</h1>
 
-  <h1>Calculadora de Valor da Terra Nua (VTN)</h1>
+    <label for="municipio">Município</label>
+    <select id="municipio"><option>Carregando...</option></select>
 
-  <form id="calcForm">
+    <div id="vtnInfo" style="display:none">
+      <p>
+        Valores do VTN em <strong><span id="vtnMunicipio"></span></strong> (2025):
+      </p>
+      <ul>
+        <li>Boa: R$ <span id="vtnBoa"></span>/ha</li>
+        <li>Regular: R$ <span id="vtnRegular"></span>/ha</li>
+        <li>Restrita: R$ <span id="vtnRestrita"></span>/ha</li>
+        <li>Pastagem: R$ <span id="vtnPastagem"></span>/ha</li>
+        <li>Silvicultura: R$ <span id="vtnSilvicultura"></span>/ha</li>
+        <li>Preservação: R$ <span id="vtnPreservacao"></span>/ha</li>
+      </ul>
+    </div>
 
-    <fieldset>
-      <legend>Valores do VTN em município (2025)</legend>
+    <input type="number" id="valorTn" readonly style="display:none;" />
 
-      <label for="vtnCulturaBoa">Cultura Boa (R$/ha):</label>
-      <input type="number" id="vtnCulturaBoa" step="0.01" value="0.00" required>
+    <label for="areaTotal">Área Total do Imóvel (ha)</label>
+    <input type="number" id="areaTotal" placeholder="Ex: 120" />
 
-      <label for="vtnCulturaRegular">Cultura Regular (R$/ha):</label>
-      <input type="number" id="vtnCulturaRegular" step="0.01" value="0.00" required>
+    <label for="areaApp">Área de APP + Reserva Legal (ha)</label>
+    <input type="number" id="areaApp" placeholder="Ex: 35" />
 
-      <label for="vtnCulturaRestrita">Cultura Restrita (R$/ha):</label>
-      <input type="number" id="vtnCulturaRestrita" step="0.01" value="0.00" required>
-
-      <label for="vtnPastagem">Pastagem (R$/ha):</label>
-      <input type="number" id="vtnPastagem" step="0.01" value="0.00" required>
-
-      <label for="vtnSilvicultura">Silvicultura (R$/ha):</label>
-      <input type="number" id="vtnSilvicultura" step="0.01" value="0.00" required>
-    </fieldset>
+    <label for="areaBenfeitorias">Área de Benfeitorias/Construções (ha)</label>
+    <input type="number" id="areaBenfeitorias" placeholder="Ex: 5" />
 
     <fieldset>
       <legend>Área Utilizada (ha)</legend>
 
-      <label for="areaCulturaBoa">Cultura Boa:</label>
-      <input type="number" id="areaCulturaBoa" step="0.01" value="0.00" required>
+      <label for="areaBoa">Cultura Boa:</label>
+      <input type="number" id="areaBoa" placeholder="Ex: 10" />
 
-      <label for="areaCulturaRegular">Cultura Regular:</label>
-      <input type="number" id="areaCulturaRegular" step="0.01" value="0.00" required>
+      <label for="areaRegular">Cultura Regular:</label>
+      <input type="number" id="areaRegular" placeholder="Ex: 15" />
 
-      <label for="areaCulturaRestrita">Cultura Restrita:</label>
-      <input type="number" id="areaCulturaRestrita" step="0.01" value="0.00" required>
+      <label for="areaRestrita">Cultura Restrita:</label>
+      <input type="number" id="areaRestrita" placeholder="Ex: 20" />
 
       <label for="areaPastagem">Pastagem:</label>
-      <input type="number" id="areaPastagem" step="0.01" value="0.00" required>
+      <input type="number" id="areaPastagem" placeholder="Ex: 20" />
 
       <label for="areaSilvicultura">Silvicultura:</label>
-      <input type="number" id="areaSilvicultura" step="0.01" value="0.00" required>
+      <input type="number" id="areaSilvicultura" placeholder="Ex: 5" />
     </fieldset>
 
-    <!-- escondido, mas disponível para futuros cálculos internos -->
-    <input type="hidden" id="valorTerraNuaHa" value="0.00">
+    <button id="calcularBtn">Calcular ITR</button>
 
-    <button type="button" id="calculateBtn">Calcular</button>
-  </form>
-
-  <div class="resultado">
-    <h2>Resultado</h2>
-    <p>Total de Área Utilizada: <strong><span id="totalArea">0,00</span> ha</strong></p>
-    <p>VTN Total: <strong><span id="vtnTotal">R$ 0,00</span></strong></p>
+    <div id="resultado"></div>
   </div>
 
   <script src="script.js"></script>
