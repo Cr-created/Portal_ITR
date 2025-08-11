@@ -74,8 +74,8 @@ selMunicipio.addEventListener('change', () => {
   const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   spanMun.textContent = mun;
-  spanBoa.textContent = `${fmtBRL.format(dados.boa)}/ha`;
-  spanRegular.textContent = `${fmtBRL.format(dados.regular)}/ha`;
+  spanBoa.textContent = `${fmtBRL.format(dados.boa)}`;
+  spanRegular.textContent = `${fmtBRL.format(dados.regular)}`;
   spanRestrita.textContent = `${fmtBRL.format(dados.restrita)}/ha`;
   spanPastagem.textContent = `${fmtBRL.format(dados.pastagem)}/ha`;
   spanSilvic.textContent = `${fmtBRL.format(dados.silvicultura)}/ha`;
@@ -155,3 +155,4 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
+
