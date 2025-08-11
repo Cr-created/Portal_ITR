@@ -151,4 +151,20 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
+// Bloqueia clique direito
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+// Bloqueia teclas comuns de inspeção
+document.onkeydown = function(e) {
+  if (
+    e.key === 'F12' || 
+    (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+    (e.ctrlKey && e.key === 'U') || 
+    (e.ctrlKey && e.shiftKey && e.key === 'J')
+  ) {
+    return false;
+  }
+};
+
+
 
