@@ -1,6 +1,7 @@
 const ANO_FIXO = '2025';
 let vtn2025 = {};
 
+// Carrega os dados do VTN
 fetch('VTN.json')
   .then(res => res.json())
   .then(data => {
@@ -19,6 +20,7 @@ fetch('VTN.json')
   })
   .then(populaMunicipios);
 
+// Elementos do DOM
 const selMunicipio = document.getElementById('municipio');
 const vtnInfo = document.getElementById('vtnInfo');
 const spanMun = document.getElementById('vtnMunicipio');
@@ -43,6 +45,7 @@ const inpAreas = {
   silvicultura: document.getElementById('areaSilvicultura')
 };
 
+// Preenche os municípios no select
 function populaMunicipios() {
   selMunicipio.innerHTML = '<option value="">Selecione o município</option>';
   Object.keys(vtn2025)
@@ -55,6 +58,7 @@ function populaMunicipios() {
     });
 }
 
+// Atualiza os valores do VTN ao selecionar município
 selMunicipio.addEventListener('change', () => {
   const mun = selMunicipio.value;
   const dados = vtn2025[mun];
@@ -72,8 +76,9 @@ selMunicipio.addEventListener('change', () => {
   spanPreserva.textContent = dados.preservacao.toFixed(2);
   inpValorTn.value = dados.boa;
   vtnInfo.style.display = 'block';
-});
+}
 
+// Função que calcula a alíquota com base na tabela oficial
 function calcularAliquota(area, gu) {
   const faixas = [
     { limite: 50, valores: [0.03, 0.2, 0.4, 0.7, 1] },
@@ -84,15 +89,19 @@ function calcularAliquota(area, gu) {
     { limite: Infinity, valores: [0.45, 3, 6.4, 12, 20] }
   ];
 
-  const guFaixa = gu <= 30 ? 0 :
-                  gu <= 50 ? 1 :
+  // Determina a faixa do GU
+  const guFaixa = gu <= 30 ? 4 :
+                  gu <= 50 ? 3 :
                   gu <= 65 ? 2 :
-                  gu <= 80 ? 3 : 4;
+                  gu <= 80 ? 1 : 0;
 
   const faixa = faixas.find(f => area <= f.limite);
-  return faixa.valores[guFaixa] / 10000;
+
+  // Alíquotas estão em %, converter para decimal
+  return faixa.valores[guFaixa] / 100;
 }
 
+// Evento de cálculo do ITR
 btnCalcular.addEventListener('click', () => {
   const mun = selMunicipio.value;
   const total = parseFloat(inpTotal.value) || 0;
@@ -142,4 +151,3 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
-
