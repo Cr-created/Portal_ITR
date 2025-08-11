@@ -71,17 +71,17 @@ selMunicipio.addEventListener('change', () => {
     return;
   }
 
-  const fmtNum = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 });
+  const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   spanMun.textContent = mun;
-  spanBoa.textContent = fmtNum.format(dados.boa);
-  spanRegular.textContent = fmtNum.format(dados.regular);
-  spanRestrita.textContent = fmtNum.format(dados.restrita);
-  spanPastagem.textContent = fmtNum.format(dados.pastagem);
-  spanSilvic.textContent = fmtNum.format(dados.silvicultura);
-  spanPreserva.textContent = fmtNum.format(dados.preservacao);
+  spanBoa.textContent = `${fmtBRL.format(dados.boa)}/ha`;
+  spanRegular.textContent = `${fmtBRL.format(dados.regular)}/ha`;
+  spanRestrita.textContent = `${fmtBRL.format(dados.restrita)}/ha`;
+  spanPastagem.textContent = `${fmtBRL.format(dados.pastagem)}/ha`;
+  spanSilvic.textContent = `${fmtBRL.format(dados.silvicultura)}/ha`;
+  spanPreserva.textContent = `${fmtBRL.format(dados.preservacao)}/ha`;
 
-  inpValorTn.value = fmtNum.format(dados.boa);
+  inpValorTn.value = dados.boa.toFixed(2); // Mantém valor numérico para cálculo
   vtnInfo.style.display = 'block';
 });
 
