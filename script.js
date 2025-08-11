@@ -76,7 +76,7 @@ selMunicipio.addEventListener('change', () => {
   spanPreserva.textContent = dados.preservacao.toFixed(2);
   inpValorTn.value = dados.boa;
   vtnInfo.style.display = 'block';
-}
+});
 
 // Função que calcula a alíquota com base na tabela oficial
 function calcularAliquota(area, gu) {
@@ -151,3 +151,4 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
+
