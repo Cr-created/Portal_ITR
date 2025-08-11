@@ -126,4 +126,6 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>Área Utilizada:</strong> ${fmtNum.format(areaUtilizada)} ha</p>
     <p><strong>VTN Total:</strong> ${fmtBRL.format(vtnTotal)}</p>
     <p><strong>Grau de Utilização (GU):</strong> ${fmtNum.format(gu)}%</p>
-    <p><strong>
+     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
+  `;
+});
