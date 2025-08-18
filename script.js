@@ -143,7 +143,7 @@ btnCalcular.addEventListener('click', () => {
     return;
   }
 
-  // VTN (R$) calculado a partir do JSON:
+  // VTN Total (R$) calculado a partir do JSON:
   // Somatório de (área da classe * VTN por ha da classe no município)
   const vtnTotal =
     areaBoa      * (dados.boa ?? 0) +
@@ -152,9 +152,8 @@ btnCalcular.addEventListener('click', () => {
     areaPastagem * (dados.pastagem ?? 0) +
     areaSilvic   * (dados.silvicultura ?? 0);
 
-  // VTN Tributável (R$) = VTN Total * (Área Tributável do Imóvel / Área Total)
-  const proporcaoTrib = areaTrib / total;
-  const vtnTributavel = vtnTotal * proporcaoTrib;
+  // VTN Tributável (R$) = Área Tributável * (VTN Total / Área Total)
+  const vtnTributavel = areaTrib * (vtnTotal / total);
 
   // Grau de Utilização e alíquota
   const gu = (areaUtilizada / areaTrib) * 100;
@@ -168,7 +167,6 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>Área Tributável:</strong> ${fmtNum.format(areaTrib)} ha</p>
     <p><strong>Área Utilizada (culturas):</strong> ${fmtNum.format(areaUtilizada)} ha</p>
     <p><strong>VTN (somatório por classe × R$/ha do município):</strong> ${fmtBRL.format(vtnTotal)}</p>
-    <p><strong>Proporção Tributável (Área Trib./Total):</strong> ${fmtNum.format(proporcaoTrib * 100)}%</p>
     <p><strong>VTN Tributável:</strong> ${fmtBRL.format(vtnTributavel)}</p>
     <p><strong>Grau de Utilização (GU):</strong> ${fmtNum.format(gu)}%</p>
     <p><strong>Alíquota Aplicada:</strong> ${fmtNum.format(aliquota * 100)}%</p>
