@@ -148,7 +148,7 @@ btnCalcular.addEventListener('click', () => {
 
   // A utilização não pode exceder a área aproveitável (capacidade de uso)
   if (areaUtilizada > areaAproveitavel + 1e-9) {
-    resultado.textContent = 'A Área Utilizada não pode exceder a Área Aproveitável (Total - Reservas - Benfeitorias).';
+    resultado.textContent = 'A Área Utilizada não pode exceder a Área Aproveitável.';
     return;
   }
 
@@ -186,4 +186,5 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>Valor Estimado do Imposto:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
+
 
