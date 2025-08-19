@@ -1,8 +1,8 @@
-// ====== script.js (GU desconsidera apenas áreas de reserva / APP) ======
+// ====== script.js (adequado ao Art. 10 e 11: VTNt e GU) ======
 const ANO_FIXO = '2025';
 let vtn2025 = {};
 
-// Carrega os dados do VTN
+// Carrega os dados do VTN (R$/ha por classe) a partir do JSON
 fetch('VTN.json')
   .then(res => res.json())
   .then(data => {
@@ -36,8 +36,8 @@ const spanSilvic   = document.getElementById('vtnSilvicultura');
 const spanPreserva = document.getElementById('vtnPreservacao');
 
 const inpTotal = document.getElementById('areaTotal');
-const inpApp   = document.getElementById('areaApp');           // APP/Reserva (isenta)
-const inpBenfe = document.getElementById('areaBenfeitorias');  // Benfeitorias (entram na área tributável)
+const inpApp   = document.getElementById('areaApp');           // Reservas (APP/Reserva Legal etc.)
+const inpBenfe = document.getElementById('areaBenfeitorias');  // Benfeitorias úteis/necessárias (área ocupada)
 
 const inpAreas = {
   boa:          document.getElementById('areaBoa'),
@@ -79,7 +79,7 @@ selMunicipio.addEventListener('change', () => {
   }
 
   spanMun.textContent      = mun;
-  // O HTML já possui "R$ " antes dos spans → exibimos só números
+  // O HTML já inclui "R$ " antes do <span>, exibimos apenas números
   spanBoa.textContent      = fmtNum.format(dados.boa);
   spanRegular.textContent  = fmtNum.format(dados.regular);
   spanRestrita.textContent = fmtNum.format(dados.restrita);
@@ -90,7 +90,7 @@ selMunicipio.addEventListener('change', () => {
   vtnInfo.style.display = 'block';
 });
 
-// ====== Alíquota por faixa oficial (retorna fração, ex.: 0.0007)
+// ====== Alíquota por faixa (retorna fração; ex.: 0.0007 = 0,07%)
 function calcularAliquota(areaTotalImovel, gu) {
   const faixas = [
     { limite: 50,      valores: [0.03, 0.2, 0.4, 0.7, 1] },
@@ -100,6 +100,7 @@ function calcularAliquota(areaTotalImovel, gu) {
     { limite: 5000,    valores: [0.3,  1.6, 3.4, 6,   8.6] },
     { limite: Infinity,valores: [0.45, 3,   6.4, 12,  20] }
   ];
+  // GU → índice da coluna (quanto menor GU, maior %)
   const idxGU = gu <= 30 ? 4 :
                 gu <= 50 ? 3 :
                 gu <= 65 ? 2 :
@@ -113,24 +114,30 @@ function calcularAliquota(areaTotalImovel, gu) {
 btnCalcular.addEventListener('click', () => {
   const mun   = selMunicipio.value;
   const total = toNum(inpTotal.value);
-  const app   = toNum(inpApp.value);     // Reservas (desconsideradas no GU e na proporção do VTN)
-  const benfe = toNum(inpBenfe.value);   // Entram na área tributável
+  const app   = toNum(inpApp.value);     // Áreas de reserva (APP/Reserva Legal etc.) — isentas
+  const benfe = toNum(inpBenfe.value);   // Área ocupada por benfeitorias úteis/necessárias
   const dados = vtn2025[mun];
 
   if (!mun)       { resultado.textContent = 'Selecione um município.'; return; }
   if (total <= 0) { resultado.textContent = 'Informe a área total do imóvel.'; return; }
   if (!dados)     { resultado.textContent = 'Município sem VTN carregado.'; return; }
 
-  // ====== Área Tributável do Imóvel (para GU e para proporção do VTN)
-  // GU DESCONSIDERA APENAS RESERVAS → área de referência = total - app
-  // Benfeitorias entram na área tributável.
-  const areaTrib = total - app;
-  if (areaTrib <= 0) {
-    resultado.textContent = 'Área tributável inválida. Revise a área de reservas (APP/Reserva).';
+  // ====== Definições legais (Lei do ITR)
+  // II - Área tributável = área total - áreas de reserva/APP/etc. (benfeitorias NÃO são excluídas aqui)
+  const areaTributavel = total - app;
+
+  if (areaTributavel <= 0) {
+    // Art. 11, §1º: inexistindo área aproveitável/tributável, aplicar alíquota como GU>80 (tratado abaixo via GU=100)
+    resultado.textContent = 'Área tributável inválida. Verifique as áreas de reserva (APP/Reserva Legal).';
     return;
   }
 
-  // ====== Distribuição de utilização (somente culturas produtivas)
+  // IV - Área aproveitável = área passível de exploração, EXCLUINDO:
+  //     a) benfeitorias úteis e necessárias
+  //     b) as mesmas áreas do inciso II (reservas/APP/etc.)
+  const areaAproveitavel = Math.max(0, total - (app + benfe));
+
+  // V - Área efetivamente utilizada = soma das culturas/pastagens/extrativas/etc.
   const areaBoa      = toNum(inpAreas.boa.value);
   const areaRegular  = toNum(inpAreas.regular.value);
   const areaRestrita = toNum(inpAreas.restrita.value);
@@ -139,13 +146,15 @@ btnCalcular.addEventListener('click', () => {
 
   const areaUtilizada = areaBoa + areaRegular + areaRestrita + areaPastagem + areaSilvic;
 
-  // A soma da utilização não pode exceder a área tributável (total - reservas)
-  if (areaUtilizada > areaTrib + 1e-9) {
-    resultado.textContent = 'A soma da Área Utilizada não pode exceder a Área Tributável (total - reservas).';
+  // A utilização não pode exceder a área aproveitável (capacidade de uso)
+  if (areaUtilizada > areaAproveitavel + 1e-9) {
+    resultado.textContent = 'A Área Utilizada não pode exceder a Área Aproveitável (Total - Reservas - Benfeitorias).';
     return;
   }
 
-  // ====== VTN Total (R$) = Σ (área por classe × VTN/ha da classe)
+  // I - VTN = valor do imóvel EXCLUINDO construções/benfeitorias, culturas, pastagens cultivadas/melhoradas e florestas plantadas.
+  // Na prática, usamos a valoração do terreno por classe (JSON de VTN/ha por classe de aptidão/uso),
+  // multiplicando pela área informada da classe:
   const vtnTotal =
       areaBoa      * (dados.boa ?? 0) +
       areaRegular  * (dados.regular ?? 0) +
@@ -153,34 +162,32 @@ btnCalcular.addEventListener('click', () => {
       areaPastagem * (dados.pastagem ?? 0) +
       areaSilvic   * (dados.silvicultura ?? 0);
 
-  // ====== VTN Tributável (R$)
-  // Regra: VTN_trib = VTN_total × (Área Tributável do Imóvel / Área Total)
-  // Onde "Área Tributável do Imóvel" desconsidera APENAS reservas (APP).
-  const vtnTributavel = vtnTotal * (areaTrib / total);
+  // III - VTNt = VTN × (Área tributável / Área total)
+  const vtnTributavel = vtnTotal * (areaTributavel / total);
 
-  // ====== Grau de Utilização (GU)
-  // GU = Área Utilizada / (Área Total - Reservas) × 100
-  const gu = (areaUtilizada / areaTrib) * 100;
+  // VI - GU = (Área efetivamente utilizada / Área aproveitável) × 100
+  // Art. 11, §1º: se não houver área aproveitável, GU considerado >80% para fins de alíquota
+  const gu = areaAproveitavel > 0 ? (areaUtilizada / areaAproveitavel) * 100 : 100;
 
-  // ====== Alíquota e ITR
+  // Alíquota conforme área total e GU
   const aliquota = calcularAliquota(total, gu);
-  const itr = vtnTributavel * aliquota;
+
+  // Art. 11 - Imposto = VTNt × alíquota; §2º - mínimo de R$ 10,00
+  const itrBruto = vtnTributavel * aliquota;
+  const itr = Math.max(itrBruto, 10);
 
   // ====== Saída
   resultado.innerHTML = `
     <p><strong>Área Total:</strong> ${fmtNum.format(total)} ha</p>
-    <p><strong>Área Reservas (APP/Reserva):</strong> ${fmtNum.format(app)} ha</p>
-    <p><strong>Área Benfeitorias:</strong> ${fmtNum.format(benfe)} ha</p>
-    <p><strong>Área Tributável (Total - Reservas):</strong> ${fmtNum.format(areaTrib)} ha</p>
-    <p><strong>Área Utilizada (culturas):</strong> ${fmtNum.format(areaUtilizada)} ha</p>
-    <p><strong>VTN (somatório por classe × R$/ha do município):</strong> ${fmtBRL.format(vtnTotal)}</p>
-    <p><strong>VTN Tributável:</strong> ${fmtBRL.format(vtnTributavel)}</p>
-    <p><strong>Grau de Utilização (GU):</strong> ${fmtNum.format(gu)}%</p>
-    <p><strong>Alíquota Aplicada:</strong> ${fmtNum.format(aliquota * 100)}%</p>
-    <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
-    <ul style="margin-top:10px">
-      <li>GU desconsidera <strong>apenas</strong> as áreas de reserva (APP/Reserva).</li>
-      <li>Benfeitorias <strong>entram</strong> na área tributável, mas não compõem a “área utilizada” se não houver uso produtivo.</li>
-    </ul>
+    <p><strong>Reservas (APP/Reserva Legal):</strong> ${fmtNum.format(app)} ha</p>
+    <p><strong>Benfeitorias úteis/necessárias:</strong> ${fmtNum.format(benfe)} ha</p>
+    <p><strong>Área Tributável (II):</strong> ${fmtNum.format(areaTributavel)} ha</p>
+    <p><strong>Área Aproveitável (IV):</strong> ${fmtNum.format(areaAproveitavel)} ha</p>
+    <p><strong>Área Efetivamente Utilizada (V):</strong> ${fmtNum.format(areaUtilizada)} ha</p>
+    <p><strong>VTN (I):</strong> ${fmtBRL.format(vtnTotal)}</p>
+    <p><strong>VTNt (III):</strong> ${fmtBRL.format(vtnTributavel)}</p>
+    <p><strong>GU (VI):</strong> ${fmtNum.format(gu)}%</p>
+    <p><strong>Alíquota:</strong> ${fmtNum.format(aliquota * 100)}%</p>
+    <p><strong>ITR (mín. R$ 10,00):</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
