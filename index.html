@@ -1,64 +1,256 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Calculadora de ITR</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>Calculadora de ITR</h1>
+/* ======================================================
+   TOKENS / RESET
+====================================================== */
+:root{
+  --bg: #0b1220;
+  --bg-img: url('Fundo.png');
 
-    <label for="municipio">Município</label>
-    <select id="municipio"><option>Carregando...</option></select>
+  --panel: rgba(10,14,22,.86);
+  --panel-border: #1f2a44;
 
-    <div id="vtnInfo" style="display:none">
-      <p>
-        Valores do VTN em <strong><span id="vtnMunicipio"></span></strong> (2025):
-      </p>
-      <ul>
-        <li>Boa: R$ <span id="vtnBoa"></span>/ha</li>
-        <li>Regular: R$ <span id="vtnRegular"></span>/ha</li>
-        <li>Restrita: R$ <span id="vtnRestrita"></span>/ha</li>
-        <li>Pastagem: R$ <span id="vtnPastagem"></span>/ha</li>
-        <li>Silvicultura: R$ <span id="vtnSilvicultura"></span>/ha</li>
-        <li>Preservação: R$ <span id="vtnPreservacao"></span>/ha</li>
-      </ul>
-    </div>
+  --text: #e5e7eb;
+  --muted: #94a3b8;
 
-    <label for="areaTotal">Área Total do Imóvel (ha)</label>
-    <input type="number" id="areaTotal" placeholder="Ex: 120" step="0.01" min="0" />
+  --primary: #22d3ee;
+  --primary-600: #06b6d4;
+  --primary-700: #0891b2;
+  --focus: #93c5fd;
 
-    <label for="areaApp">Área de APP + Reserva Legal (ha)</label>
-    <input type="number" id="areaApp" placeholder="Ex: 35" step="0.01" min="0" />
+  --input-bg: #0f172a;
+  --input-bg-focus: #111c2e;
 
-    <label for="areaBenfeitorias">Área de Benfeitorias/Construções (ha)</label>
-    <input type="number" id="areaBenfeitorias" placeholder="Ex: 5" step="0.01" min="0" />
+  --card: #0b0f19;
+  --card-border: #1e293b;
 
-    <fieldset>
-      <legend>Área Utilizada (ha)</legend>
+  --radius: 14px;
+  --shadow: 0 12px 36px rgba(0,0,0,.35);
 
-      <label for="areaBoa">Cultura Boa:</label>
-      <input type="number" id="areaBoa" placeholder="Ex: 10" step="0.01" min="0" />
+  --sp-1: 8px;
+  --sp-2: 12px;
+  --sp-3: 16px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
 
-      <label for="areaRegular">Cultura Regular:</label>
-      <input type="number" id="areaRegular" placeholder="Ex: 15" step="0.01" min="0" />
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg) var(--bg-img) no-repeat center/cover fixed;
+  min-height: 100vh;
+  display: grid;
+  place-items: start center;
+  padding: clamp(16px, 3vw, 28px);
+  line-height: 1.45;
+}
 
-      <label for="areaRestrita">Cultura Restrita:</label>
-      <input type="number" id="areaRestrita" placeholder="Ex: 20" step="0.01" min="0" />
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; animation:none !important; }
+}
 
-      <label for="areaPastagem">Pastagem:</label>
-      <input type="number" id="areaPastagem" placeholder="Ex: 20" step="0.01" min="0" />
+/* ======================================================
+   CONTAINER / TÍTULO
+====================================================== */
+.container{
+  width: min(960px, 100%);
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(16px, 3vw, 28px);
+}
 
-      <label for="areaSilvicultura">Silvicultura:</label>
-      <input type="number" id="areaSilvicultura" placeholder="Ex: 5" step="0.01" min="0" />
-    </fieldset>
+h1{
+  text-align:center;
+  margin-bottom: var(--sp-4);
+  font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.2rem);
+  color: var(--primary);
+  letter-spacing:.2px;
+}
 
-    <button id="calcularBtn">Calcular ITR</button>
+/* ======================================================
+   CAMPOS GERAIS (labels acima dos inputs)
+====================================================== */
+label{
+  display:block;
+  margin-top: var(--sp-2);
+  font-weight: 600;
+  color: var(--muted);
+  font-size: .95rem;
+}
 
-    <div id="resultado"></div>
-  </div>
+input,
+select{
+  width:100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color .2s, background-color .2s, box-shadow .2s;
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+input::placeholder{ color:#7c8aa5; }
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible{
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(147,197,253,.15);
+  background: var(--input-bg-focus);
+}
+
+/* remover spinners do number */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+input[type=number]{ -moz-appearance:textfield; }
+
+/* ======================================================
+   BOX DE INFORMAÇÃO DO VTN
+====================================================== */
+#vtnInfo{
+  margin-top: var(--sp-3);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: var(--sp-3);
+}
+#vtnInfo p{ margin-bottom: var(--sp-2); }
+#vtnInfo ul{
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+@media (min-width: 640px){
+  #vtnInfo ul{ grid-template-columns: repeat(2, 1fr); }
+}
+#vtnInfo li{
+  padding: 10px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+}
+
+/* ======================================================
+   FIELDSET: GRID 2 COLUNAS (label na 1ª, input na 2ª)
+====================================================== */
+fieldset{
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: var(--sp-3);
+  margin-top: var(--sp-4);
+  background: var(--card);
+}
+legend{
+  padding: 0 6px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .9rem;
+}
+
+/* grid: cada label ocupa a coluna 1, o input seguinte ocupa a 2 */
+fieldset{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-2);
+}
+@media (min-width: 640px){
+  fieldset{
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  fieldset > label{
+    margin-top: 0;            /* já controlado pelo grid */
+  }
+}
+
+/* ======================================================
+   BOTÃO
+====================================================== */
+button{
+  margin-top: var(--sp-4);
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--primary);
+  color: #06221f;
+  font-weight: 800;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform .08s ease, background-color .2s ease, border-color .2s ease, opacity .2s ease;
+}
+button:hover{ background: var(--primary-600); }
+button:active{ transform: translateY(1px); background: var(--primary-700); }
+button:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* ======================================================
+   RESULTADO (card com linhas)
+====================================================== */
+#resultado{
+  margin-top: var(--sp-4);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* cabeçalho sutil */
+#resultado::before{
+  content:"Resultado";
+  display:block;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, rgba(34,211,238,.12), rgba(34,211,238,0));
+  border-bottom: 1px solid var(--card-border);
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing:.3px;
+}
+
+/* linhas do conteúdo gerado pelo JS */
+#resultado p{
+  padding: 10px 16px;
+  border-top: 1px solid var(--card-border);
+}
+#resultado p:first-of-type{ border-top: none; }
+
+#resultado ul{
+  margin: var(--sp-3) var(--sp-3) var(--sp-4);
+  padding-left: 18px;
+}
+
+strong{ color: var(--primary); }
+
+/* ======================================================
+   MODO CLARO (opcional)
+====================================================== */
+@media (prefers-color-scheme: light){
+  :root{
+    --bg: #f1f5f9;
+    --panel: rgba(255,255,255,.95);
+    --panel-border: #e2e8f0;
+
+    --text: #0f172a;
+    --muted: #475569;
+
+    --input-bg: #ffffff;
+    --input-bg-focus: #f8fafc;
+
+    --card: #ffffff;
+    --card-border: #e2e8f0;
+
+    --shadow: 0 12px 36px rgba(2,6,23,.08);
+  }
+  body{ background: var(--bg); }
+  button{ color:#052a32; }
+}
