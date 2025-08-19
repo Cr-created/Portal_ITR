@@ -1,4 +1,4 @@
-// ====== script.js (benfeitorias entram na Área Tributável) ======
+// ====== script.js (GU desconsidera apenas áreas de reserva / APP) ======
 const ANO_FIXO = '2025';
 let vtn2025 = {};
 
@@ -36,8 +36,8 @@ const spanSilvic   = document.getElementById('vtnSilvicultura');
 const spanPreserva = document.getElementById('vtnPreservacao');
 
 const inpTotal = document.getElementById('areaTotal');
-const inpApp   = document.getElementById('areaApp');           // APP + Reserva (isentas)
-const inpBenfe = document.getElementById('areaBenfeitorias');  // Benfeitorias (AGORA entram na Área Tributável)
+const inpApp   = document.getElementById('areaApp');           // APP/Reserva (isenta)
+const inpBenfe = document.getElementById('areaBenfeitorias');  // Benfeitorias (entram na área tributável)
 
 const inpAreas = {
   boa:          document.getElementById('areaBoa'),
@@ -79,7 +79,7 @@ selMunicipio.addEventListener('change', () => {
   }
 
   spanMun.textContent      = mun;
-  // O HTML tem "R$ " antes do span; aqui exibimos somente números formatados
+  // O HTML já possui "R$ " antes dos spans → exibimos só números
   spanBoa.textContent      = fmtNum.format(dados.boa);
   spanRegular.textContent  = fmtNum.format(dados.regular);
   spanRestrita.textContent = fmtNum.format(dados.restrita);
@@ -113,23 +113,24 @@ function calcularAliquota(areaTotalImovel, gu) {
 btnCalcular.addEventListener('click', () => {
   const mun   = selMunicipio.value;
   const total = toNum(inpTotal.value);
-  const app   = toNum(inpApp.value);
-  const benfe = toNum(inpBenfe.value); // entra no total, mas NÃO exclui da área tributável
+  const app   = toNum(inpApp.value);     // Reservas (desconsideradas no GU e na proporção do VTN)
+  const benfe = toNum(inpBenfe.value);   // Entram na área tributável
   const dados = vtn2025[mun];
 
   if (!mun)       { resultado.textContent = 'Selecione um município.'; return; }
   if (total <= 0) { resultado.textContent = 'Informe a área total do imóvel.'; return; }
   if (!dados)     { resultado.textContent = 'Município sem VTN carregado.'; return; }
 
-  // ====== Área Tributável do Imóvel
-  // AGORA: Área Tributável = Área Total - APP/Reserva  (benfeitorias entram)
+  // ====== Área Tributável do Imóvel (para GU e para proporção do VTN)
+  // GU DESCONSIDERA APENAS RESERVAS → área de referência = total - app
+  // Benfeitorias entram na área tributável.
   const areaTrib = total - app;
   if (areaTrib <= 0) {
-    resultado.textContent = 'Área tributável inválida. Revise APP/Reserva.';
+    resultado.textContent = 'Área tributável inválida. Revise a área de reservas (APP/Reserva).';
     return;
   }
 
-  // ====== Distribuição de utilização em culturas (todas tributáveis)
+  // ====== Distribuição de utilização (somente culturas produtivas)
   const areaBoa      = toNum(inpAreas.boa.value);
   const areaRegular  = toNum(inpAreas.regular.value);
   const areaRestrita = toNum(inpAreas.restrita.value);
@@ -138,13 +139,13 @@ btnCalcular.addEventListener('click', () => {
 
   const areaUtilizada = areaBoa + areaRegular + areaRestrita + areaPastagem + areaSilvic;
 
-  // A soma da utilização NÃO pode exceder a Área Tributável
+  // A soma da utilização não pode exceder a área tributável (total - reservas)
   if (areaUtilizada > areaTrib + 1e-9) {
-    resultado.textContent = 'A soma da Área Utilizada não pode exceder a Área Tributável.';
+    resultado.textContent = 'A soma da Área Utilizada não pode exceder a Área Tributável (total - reservas).';
     return;
   }
 
-  // ====== VTN Total (R$) = Σ (área da classe × VTN/ha da classe no município)
+  // ====== VTN Total (R$) = Σ (área por classe × VTN/ha da classe)
   const vtnTotal =
       areaBoa      * (dados.boa ?? 0) +
       areaRegular  * (dados.regular ?? 0) +
@@ -153,23 +154,24 @@ btnCalcular.addEventListener('click', () => {
       areaSilvic   * (dados.silvicultura ?? 0);
 
   // ====== VTN Tributável (R$)
-  // Aplicando a regra solicitada: VTNTributável = VTNTotal × (ÁreaTributável / ÁreaTotal)
+  // Regra: VTN_trib = VTN_total × (Área Tributável do Imóvel / Área Total)
+  // Onde "Área Tributável do Imóvel" desconsidera APENAS reservas (APP).
   const vtnTributavel = vtnTotal * (areaTrib / total);
 
-  // ====== GU e Alíquota
-  // GU usa Área Tributável no denominador; benfeitorias entram na área tributável, mas tipicamente NÃO entram em "área utilizada" (se não forem culturas).
+  // ====== Grau de Utilização (GU)
+  // GU = Área Utilizada / (Área Total - Reservas) × 100
   const gu = (areaUtilizada / areaTrib) * 100;
-  const aliquota = calcularAliquota(total, gu);
 
-  // ====== ITR
+  // ====== Alíquota e ITR
+  const aliquota = calcularAliquota(total, gu);
   const itr = vtnTributavel * aliquota;
 
   // ====== Saída
   resultado.innerHTML = `
     <p><strong>Área Total:</strong> ${fmtNum.format(total)} ha</p>
-    <p><strong>Área APP/Reserva (isenta):</strong> ${fmtNum.format(app)} ha</p>
+    <p><strong>Área Reservas (APP/Reserva):</strong> ${fmtNum.format(app)} ha</p>
     <p><strong>Área Benfeitorias:</strong> ${fmtNum.format(benfe)} ha</p>
-    <p><strong>Área Tributável:</strong> ${fmtNum.format(areaTrib)} ha</p>
+    <p><strong>Área Tributável (Total - Reservas):</strong> ${fmtNum.format(areaTrib)} ha</p>
     <p><strong>Área Utilizada (culturas):</strong> ${fmtNum.format(areaUtilizada)} ha</p>
     <p><strong>VTN (somatório por classe × R$/ha do município):</strong> ${fmtBRL.format(vtnTotal)}</p>
     <p><strong>VTN Tributável:</strong> ${fmtBRL.format(vtnTributavel)}</p>
@@ -177,8 +179,8 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>Alíquota Aplicada:</strong> ${fmtNum.format(aliquota * 100)}%</p>
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
     <ul style="margin-top:10px">
-      <li>APP/Reserva: isentas.</li>
-      <li>Benfeitorias: <strong>entram</strong> na Área Tributável (podem reduzir o GU se não houver uso produtivo equivalente).</li>
+      <li>GU desconsidera <strong>apenas</strong> as áreas de reserva (APP/Reserva).</li>
+      <li>Benfeitorias <strong>entram</strong> na área tributável, mas não compõem a “área utilizada” se não houver uso produtivo.</li>
     </ul>
   `;
 });
