@@ -179,15 +179,11 @@ btnCalcular.addEventListener('click', () => {
   // ====== Saída
   resultado.innerHTML = `
     <p><strong>Área Total:</strong> ${fmtNum.format(total)} ha</p>
-    <p><strong>Reservas (APP/Reserva Legal):</strong> ${fmtNum.format(app)} ha</p>
-    <p><strong>Benfeitorias úteis/necessárias:</strong> ${fmtNum.format(benfe)} ha</p>
-    <p><strong>Área Tributável (II):</strong> ${fmtNum.format(areaTributavel)} ha</p>
-    <p><strong>Área Aproveitável (IV):</strong> ${fmtNum.format(areaAproveitavel)} ha</p>
-    <p><strong>Área Efetivamente Utilizada (V):</strong> ${fmtNum.format(areaUtilizada)} ha</p>
-    <p><strong>VTN (I):</strong> ${fmtBRL.format(vtnTotal)}</p>
-    <p><strong>VTNt (III):</strong> ${fmtBRL.format(vtnTributavel)}</p>
-    <p><strong>GU (VI):</strong> ${fmtNum.format(gu)}%</p>
+    <p><strong>Área Utilizada:</strong> ${fmtNum.format(areaUtilizada)} ha</p>
+    <p><strong>Valor da Terra Nua:</strong> ${fmtBRL.format(vtnTotal)}</p>
+    <p><strong>Grau de Utilização:</strong> ${fmtNum.format(gu)}%</p>
     <p><strong>Alíquota:</strong> ${fmtNum.format(aliquota * 100)}%</p>
-    <p><strong>ITR (mín. R$ 10,00):</strong> ${fmtBRL.format(itr)}</p>
+    <p><strong>Valor Estimado do Imposto:</strong> ${fmtBRL.format(itr)}</p>
   `;
 });
+
