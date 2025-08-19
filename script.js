@@ -1,4 +1,4 @@
-// ====== script.js (versão limpa) ======
+// ====== script.js (benfeitorias entram na Área Tributável) ======
 const ANO_FIXO = '2025';
 let vtn2025 = {};
 
@@ -10,12 +10,12 @@ fetch('VTN.json')
       .filter(item => item.ANO === ANO_FIXO)
       .forEach(item => {
         vtn2025[item.Município] = {
-          boa: item['Lavoura Aptidão Boa'],
-          regular: item['Lavoura Aptidão Regular'],
-          restrita: item['Lavoura Aptidão Restrita'],
-          pastagem: item['Pastagem Plantada'],
-          silvicultura: item['Silvicultura'],
-          preservacao: item['Preservação']
+          boa:          Number(item['Lavoura Aptidão Boa'])      || 0,
+          regular:      Number(item['Lavoura Aptidão Regular'])  || 0,
+          restrita:     Number(item['Lavoura Aptidão Restrita']) || 0,
+          pastagem:     Number(item['Pastagem Plantada'])        || 0,
+          silvicultura: Number(item['Silvicultura'])             || 0,
+          preservacao:  Number(item['Preservação'])              || 0
         };
       });
   })
@@ -36,14 +36,14 @@ const spanSilvic   = document.getElementById('vtnSilvicultura');
 const spanPreserva = document.getElementById('vtnPreservacao');
 
 const inpTotal = document.getElementById('areaTotal');
-const inpApp   = document.getElementById('areaApp');
-const inpBenfe = document.getElementById('areaBenfeitorias');
+const inpApp   = document.getElementById('areaApp');           // APP + Reserva (isentas)
+const inpBenfe = document.getElementById('areaBenfeitorias');  // Benfeitorias (AGORA entram na Área Tributável)
 
 const inpAreas = {
-  boa:        document.getElementById('areaBoa'),
-  regular:    document.getElementById('areaRegular'),
-  restrita:   document.getElementById('areaRestrita'),
-  pastagem:   document.getElementById('areaPastagem'),
+  boa:          document.getElementById('areaBoa'),
+  regular:      document.getElementById('areaRegular'),
+  restrita:     document.getElementById('areaRestrita'),
+  pastagem:     document.getElementById('areaPastagem'),
   silvicultura: document.getElementById('areaSilvicultura')
 };
 
@@ -57,7 +57,7 @@ function toNum(v) {
 const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmtNum = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-// ====== Populate municípios
+// ====== Popular municípios
 function populaMunicipios() {
   selMunicipio.innerHTML = '<option value="">Selecione o município</option>';
   Object.keys(vtn2025).sort().forEach(m => {
@@ -68,7 +68,7 @@ function populaMunicipios() {
   });
 }
 
-// ====== Exibe VTN do município selecionado
+// ====== Exibir VTN do município selecionado
 selMunicipio.addEventListener('change', () => {
   const mun = selMunicipio.value;
   const dados = vtn2025[mun];
@@ -79,34 +79,34 @@ selMunicipio.addEventListener('change', () => {
   }
 
   spanMun.textContent      = mun;
-  spanBoa.textContent      = fmtBRL.format(dados.boa);
-  spanRegular.textContent  = fmtBRL.format(dados.regular);
-  spanRestrita.textContent = fmtBRL.format(dados.restrita);
-  spanPastagem.textContent = fmtBRL.format(dados.pastagem);
-  spanSilvic.textContent   = fmtBRL.format(dados.silvicultura);
-  spanPreserva.textContent = fmtBRL.format(dados.preservacao);
+  // O HTML tem "R$ " antes do span; aqui exibimos somente números formatados
+  spanBoa.textContent      = fmtNum.format(dados.boa);
+  spanRegular.textContent  = fmtNum.format(dados.regular);
+  spanRestrita.textContent = fmtNum.format(dados.restrita);
+  spanPastagem.textContent = fmtNum.format(dados.pastagem);
+  spanSilvic.textContent   = fmtNum.format(dados.silvicultura);
+  spanPreserva.textContent = fmtNum.format(dados.preservacao);
 
   vtnInfo.style.display = 'block';
 });
 
-// ====== Alíquota por faixa oficial
+// ====== Alíquota por faixa oficial (retorna fração, ex.: 0.0007)
 function calcularAliquota(areaTotalImovel, gu) {
   const faixas = [
-    { limite: 50,    valores: [0.03, 0.2, 0.4, 0.7, 1] },
-    { limite: 200,   valores: [0.07, 0.4, 0.8, 1.4, 2] },
-    { limite: 500,   valores: [0.1,  0.6, 1.3, 2.3, 3.3] },
-    { limite: 1000,  valores: [0.15, 0.85,1.9, 3.3, 4.7] },
-    { limite: 5000,  valores: [0.3,  1.6, 3.4, 6,   8.6] },
-    { limite: Infinity, valores: [0.45, 3, 6.4, 12, 20] }
+    { limite: 50,      valores: [0.03, 0.2, 0.4, 0.7, 1] },
+    { limite: 200,     valores: [0.07, 0.4, 0.8, 1.4, 2] },
+    { limite: 500,     valores: [0.1,  0.6, 1.3, 2.3, 3.3] },
+    { limite: 1000,    valores: [0.15, 0.85,1.9, 3.3, 4.7] },
+    { limite: 5000,    valores: [0.3,  1.6, 3.4, 6,   8.6] },
+    { limite: Infinity,valores: [0.45, 3,   6.4, 12,  20] }
   ];
-  // GU → índice (quanto menor GU, maior índice/maior %)
   const idxGU = gu <= 30 ? 4 :
                 gu <= 50 ? 3 :
                 gu <= 65 ? 2 :
                 gu <= 80 ? 1 : 0;
 
   const faixa = faixas.find(f => areaTotalImovel <= f.limite);
-  return faixa.valores[idxGU] / 100; // retorna fração (ex.: 0,0007)
+  return (faixa?.valores?.[idxGU] ?? 0) / 100;
 }
 
 // ====== Cálculo principal
@@ -114,18 +114,22 @@ btnCalcular.addEventListener('click', () => {
   const mun   = selMunicipio.value;
   const total = toNum(inpTotal.value);
   const app   = toNum(inpApp.value);
-  const benfe = toNum(inpBenfe.value);
+  const benfe = toNum(inpBenfe.value); // entra no total, mas NÃO exclui da área tributável
   const dados = vtn2025[mun];
 
-  if (!mun)              { resultado.textContent = 'Selecione um município.'; return; }
-  if (total <= 0)        { resultado.textContent = 'Informe a área total do imóvel.'; return; }
-  if (!dados)            { resultado.textContent = 'Município sem VTN carregado.'; return; }
+  if (!mun)       { resultado.textContent = 'Selecione um município.'; return; }
+  if (total <= 0) { resultado.textContent = 'Informe a área total do imóvel.'; return; }
+  if (!dados)     { resultado.textContent = 'Município sem VTN carregado.'; return; }
 
-  // Área Tributável do Imóvel = Área Total - (APP/Reserva + Benfeitorias)
-  const areaTrib = total - (app + benfe);
-  if (areaTrib <= 0)     { resultado.textContent = 'Área tributável inválida. Revise APP/Reserva e Benfeitorias.'; return; }
+  // ====== Área Tributável do Imóvel
+  // AGORA: Área Tributável = Área Total - APP/Reserva  (benfeitorias entram)
+  const areaTrib = total - app;
+  if (areaTrib <= 0) {
+    resultado.textContent = 'Área tributável inválida. Revise APP/Reserva.';
+    return;
+  }
 
-  // Distribuição de utilização em culturas (todas tributáveis)
+  // ====== Distribuição de utilização em culturas (todas tributáveis)
   const areaBoa      = toNum(inpAreas.boa.value);
   const areaRegular  = toNum(inpAreas.regular.value);
   const areaRestrita = toNum(inpAreas.restrita.value);
@@ -134,12 +138,13 @@ btnCalcular.addEventListener('click', () => {
 
   const areaUtilizada = areaBoa + areaRegular + areaRestrita + areaPastagem + areaSilvic;
 
+  // A soma da utilização NÃO pode exceder a Área Tributável
   if (areaUtilizada > areaTrib + 1e-9) {
     resultado.textContent = 'A soma da Área Utilizada não pode exceder a Área Tributável.';
     return;
   }
 
-  // VTN Total (R$) = Σ (área da classe × VTN/ha da classe no município)
+  // ====== VTN Total (R$) = Σ (área da classe × VTN/ha da classe no município)
   const vtnTotal =
       areaBoa      * (dados.boa ?? 0) +
       areaRegular  * (dados.regular ?? 0) +
@@ -147,19 +152,23 @@ btnCalcular.addEventListener('click', () => {
       areaPastagem * (dados.pastagem ?? 0) +
       areaSilvic   * (dados.silvicultura ?? 0);
 
-  // VTN Tributável (R$) = Área Tributável × (VTN Total / Área Total)
-  const vtnTributavel = areaTrib * (vtnTotal / total);
+  // ====== VTN Tributável (R$)
+  // Aplicando a regra solicitada: VTNTributável = VTNTotal × (ÁreaTributável / ÁreaTotal)
+  const vtnTributavel = vtnTotal * (areaTrib / total);
 
-  // Grau de Utilização (GU) e alíquota
+  // ====== GU e Alíquota
+  // GU usa Área Tributável no denominador; benfeitorias entram na área tributável, mas tipicamente NÃO entram em "área utilizada" (se não forem culturas).
   const gu = (areaUtilizada / areaTrib) * 100;
   const aliquota = calcularAliquota(total, gu);
 
-  // ITR (R$) = VTN Tributável × Alíquota
+  // ====== ITR
   const itr = vtnTributavel * aliquota;
 
   // ====== Saída
   resultado.innerHTML = `
     <p><strong>Área Total:</strong> ${fmtNum.format(total)} ha</p>
+    <p><strong>Área APP/Reserva (isenta):</strong> ${fmtNum.format(app)} ha</p>
+    <p><strong>Área Benfeitorias:</strong> ${fmtNum.format(benfe)} ha</p>
     <p><strong>Área Tributável:</strong> ${fmtNum.format(areaTrib)} ha</p>
     <p><strong>Área Utilizada (culturas):</strong> ${fmtNum.format(areaUtilizada)} ha</p>
     <p><strong>VTN (somatório por classe × R$/ha do município):</strong> ${fmtBRL.format(vtnTotal)}</p>
@@ -168,8 +177,8 @@ btnCalcular.addEventListener('click', () => {
     <p><strong>Alíquota Aplicada:</strong> ${fmtNum.format(aliquota * 100)}%</p>
     <p><strong>ITR Estimado:</strong> ${fmtBRL.format(itr)}</p>
     <ul style="margin-top:10px">
-      <li>APP/Reserva: isentas (fora da base de área tributável).</li>
-      <li>Benfeitorias: não integram a Área Tributável.</li>
+      <li>APP/Reserva: isentas.</li>
+      <li>Benfeitorias: <strong>entram</strong> na Área Tributável (podem reduzir o GU se não houver uso produtivo equivalente).</li>
     </ul>
   `;
 });
