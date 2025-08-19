@@ -1,9 +1,8 @@
-// Evento de cálculo do ITR (ajustes pontuais: áreaTrib, áreaUtilizada, vtnTotal)
 btnCalcular.addEventListener('click', () => {
   const mun = selMunicipio.value;
   const total = parseFloat(inpTotal.value.replace(',', '.')) || 0;
   const app = parseFloat(inpApp.value.replace(',', '.')) || 0;
-  const benfe = parseFloat(inpBenfe.value.replace(',', '.')) || 0;
+  const benfe = parseFloat(inpBenfe.value.replace(',', '.')) || 0;  // ← vamos usar!
   const dados = vtn2025[mun];
 
   if (!mun) {
@@ -15,34 +14,34 @@ btnCalcular.addEventListener('click', () => {
     return;
   }
 
-  // (1) AJUSTE: benfeitorias não são isentas → NÃO entram no desconto
+  // (1) Área tributável inclui benfeitorias: TOTAL - APP
   const areaTrib = total - app;
   if (areaTrib <= 0) {
     resultado.textContent = 'Área tributável inválida.';
     return;
   }
 
-  // (2) AJUSTE: GU considera também a área de benfeitorias (além das áreas por aptidão)
-  const areaUtilizadaAptidoes = Object.values(inpAreas)
+  // Soma das áreas de uso informadas
+  const somaClassesUso = Object.values(inpAreas)
     .map(input => parseFloat(input.value.replace(',', '.')) || 0)
     .reduce((sum, val) => sum + val, 0);
-  const areaUtilizada = areaUtilizadaAptidoes + benfe;
 
-  // (3) AJUSTE: VTN total inclui benfeitorias × valor de TN informado (inpValorTn)
-  const valorTNBenfe = parseFloat((inpValorTn.value || '').toString().replace(',', '.'));
-  const tnParaBenfe = Number.isFinite(valorTNBenfe) ? valorTNBenfe : (dados?.boa || 0);
+  // (2) GU considera também a área de benfeitorias
+  const areaUtilizada = somaClassesUso + benfe;
 
-  const vtnTotal =
-    (parseFloat(inpAreas.boa.value.replace(',', '.')) || 0) * (dados?.boa || 0) +
-    (parseFloat(inpAreas.regular.value.replace(',', '.')) || 0) * (dados?.regular || 0) +
-    (parseFloat(inpAreas.restrita.value.replace(',', '.')) || 0) * (dados?.restrita || 0) +
-    (parseFloat(inpAreas.pastagem.value.replace(',', '.')) || 0) * (dados?.pastagem || 0) +
-    (parseFloat(inpAreas.silvicultura.value.replace(',', '.')) || 0) * (dados?.silvicultura || 0) +
-    // inclusão das benfeitorias no VTN
-    benfe * tnParaBenfe;
+  // (3) VTN Total: classes × VTN municipal + benfeitorias × VTN escolhido (campo valorTn)
+  const vtnClasses =
+    (parseFloat((inpAreas.boa.value || '0').replace(',', '.')) * (dados?.boa || 0)) +
+    (parseFloat((inpAreas.regular.value || '0').replace(',', '.')) * (dados?.regular || 0)) +
+    (parseFloat((inpAreas.restrita.value || '0').replace(',', '.')) * (dados?.restrita || 0)) +
+    (parseFloat((inpAreas.pastagem.value || '0').replace(',', '.')) * (dados?.pastagem || 0)) +
+    (parseFloat((inpAreas.silvicultura.value || '0').replace(',', '.')) * (dados?.silvicultura || 0));
+
+  const vtnBenfe = benfe * (parseFloat((inpValorTn.value || '0').replace(',', '.')) || 0);
+  const vtnTotal = vtnClasses + vtnBenfe;
 
   const gu = (areaUtilizada / areaTrib) * 100;
-  const aliquota = calcularAliquota(total, gu);
+  const aliquota = calcularAliquota(total, gu); // mantém sua regra/tabela
   const itr = vtnTotal * aliquota;
 
   const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
